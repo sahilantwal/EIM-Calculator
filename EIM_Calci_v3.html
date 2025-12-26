@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIM Incentive Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #800000;
+            --primary-dark: #660000;
+            --primary-light: rgba(128, 0, 0, 0.08);
+            --white: #ffffff;
+            --grey-50: #f9f9f9;
+            --grey-100: #f0f0f0;
+            --grey-200: #e6e6e6;
+            --grey-500: #8a8a8a;
+            --grey-700: #555555;
+            --shadow: rgba(128, 0, 0, 0.05);
+            --glow: rgba(128, 0, 0, 0.12);
+            --success: #2e8b57;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--grey-50);
+            color: var(--grey-700);
+            line-height: 1.5;
+            padding: 16px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-top: 8px;
+        }
+        
+        .logo {
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .header p {
+            color: var(--grey-500);
+            font-size: 14px;
+            background-color: rgba(128, 0, 0, 0.05);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px var(--shadow);
+            border: 1px solid var(--grey-100);
+            transition: all 0.3s ease;
+        }
+        
+        .input-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .input-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 18px 0 0 18px;
+        }
+        
+        .input-card:focus-within {
+            box-shadow: 0 8px 25px var(--glow);
+        }
+        
+        /* Input Section */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .input-label i {
+            color: var(--primary);
+            margin-right: 10px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .input-label span {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-500);
+            font-size: 18px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            font-size: 17px;
+            border-radius: 14px;
+            border: 1.5px solid var(--grey-200);
+            background-color: var(--white);
+            color: var(--grey-700);
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        
+        input::placeholder {
+            color: var(--grey-500);
+        }
+        
+        /* Percentage input specific */
+        #productFee {
+            padding-right: 60px;
+        }
+        
+        .percent-symbol {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-500);
+            font-weight: 600;
+        }
+        
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--glow);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        /* Output Section */
+        .output-card {
+            position: relative;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--grey-100);
+        }
+        
+        .section-header i {
+            color: var(--primary);
+            margin-right: 12px;
+            font-size: 22px;
+        }
+        
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--grey-100);
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            font-size: 15px;
+            color: var(--grey-700);
+        }
+        
+        .result-label i {
+            margin-right: 12px;
+            color: var(--primary);
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .number-text {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 6px;
+            font-size: 15px;
+        }
+        
+        .sub-number-text {
+            font-weight: 600;
+            color: var(--grey-700);
+            margin-right: 6px;
+            font-size: 15px;
+        }
+        
+        .formula-note {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-left: 6px;
+            font-style: italic;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+            color: var(--grey-700);
+        }
+        
+        .highlight-row {
+            background-color: rgba(128, 0, 0, 0.03);
+            margin: 10px -24px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--grey-100);
+            border-bottom: 1px solid var(--grey-100);
+        }
+        
+        .highlight-label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+        
+        .section-header-label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Cash Earning and Overall Value Styles */
+        .cash-earning-container,
+        .overall-value-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+        
+        .cash-earning {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--success);
+            line-height: 1.2;
+        }
+        
+        .overall-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        
+        .percentage-bracket {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--grey-500);
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+        
+        /* Reward badges */
+        .reward-badge {
+            display: inline-block;
+            background-color: rgba(128, 0, 0, 0.08);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding: 16px;
+            color: var(--grey-500);
+            font-size: 13px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 8px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            input, button {
+                padding: 16px;
+                font-size: 16px;
+            }
+            
+            .input-wrapper i {
+                left: 14px;
+                font-size: 16px;
+            }
+            
+            input {
+                padding-left: 44px;
+            }
+            
+            .cash-earning {
+                font-size: 20px;
+            }
+            
+            .overall-value {
+                font-size: 24px;
+            }
+            
+            .highlight-row {
+                margin: 10px -20px;
+                padding: 16px 20px;
+            }
+            
+            .formula-note {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h1>EIM Incentive Calculator</h1>
+            <p>Assuming WCP = WRP <br> Exclusively for New EIMs hired in Dec</p>
+        </div>
+        
+        <!-- Input Card -->
+        <div class="card input-card">
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fas fa-rupee-sign"></i>
+                    <span>Enter WCP / WRP (₹)</span>
+                </div>
+                
+                <div class="input-wrapper">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input type="text" id="wcp" placeholder="e.g. 6,00,000">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fas fa-percentage"></i>
+                    <span>Product Fee (%)</span>
+                </div>
+                
+                <div class="input-wrapper">
+                    <i class="fas fa-sliders-h"></i>
+                    <input type="number" id="productFee" placeholder="e.g. 20" min="0" max="100">
+                    <span class="percent-symbol">%</span>
+                </div>
+            </div>
+            
+            <button id="calcBtn">
+                <i class="fas fa-chart-line"></i>
+                Calculate Incentive
+            </button>
+        </div>
+        
+        <!-- Output Card -->
+        <div class="card output-card">
+            <div class="section-header">
+                <i class="fas fa-chart-pie"></i>
+                <h2>Incentive Breakdown</h2>
+            </div>
+            
+            <!-- WCP Row -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-layer-group"></i>
+                    WCP
+                </div>
+                <div class="result-value" id="slab">-</div>
+            </div>
+            
+            <!-- 1. Product Fee -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-percentage"></i>
+                    <span class="number-text">1.</span>
+                    Product Fee (% of WRP)
+                </div>
+                <div class="result-value" id="pfOut">-</div>
+            </div>
+            
+            <!-- 2. Milestone Incentive -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-trophy"></i>
+                    <span class="number-text">2.</span>
+                    Milestone Incentive <br>(% of Product Fee)
+                </div>
+                <div class="result-value" id="inc">-</div>
+            </div>
+            
+            <!-- Cash Earning Highlight (1+2) -->
+            <div class="result-row highlight-row">
+                <div class="result-label highlight-label">
+                    <i class="fas fa-money-check-alt"></i>
+                    Cash Earning (% of WRP)
+                    <span class="formula-note">(1+2)</span>
+                </div>
+                <div class="cash-earning-container" id="cashContainer">
+                    <div class="cash-earning" id="cash">-</div>
+                    <div class="percentage-bracket" id="cashPercent">-</div>
+                </div>
+            </div>
+            
+            <!-- 3. Other Earnings Header -->
+            <div class="section-header-label">
+                <span class="number-text">3.</span>
+                Other Earnings
+            </div>
+            
+            <!-- 3.1 December Delight -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-gift"></i>
+                    <span class="sub-number-text">3.1</span>
+                    December Delight
+                </div>
+                <div class="result-value">
+                    <span id="dec">-</span>
+                    <span class="reward-badge">Reward</span>
+                </div>
+            </div>
+            
+            <!-- 3.2 CEO MDRT Council 2025 -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-crown"></i>
+                    <span class="sub-number-text">3.2</span>
+                    CEO MDRT Council 2025
+                </div>
+                <div class="result-value">
+                    <span id="ceo">-</span>
+                    <span class="reward-badge">Exclusive</span>
+                </div>
+            </div>
+            
+            <!-- Overall Incentive Highlight (1+2+3) -->
+            <div class="result-row highlight-row">
+                <div class="result-label highlight-label">
+                    <i class="fas fa-star"></i>
+                    Overall Incentive Value
+                    <span class="formula-note">(1+2+3)</span>
+                </div>
+                <div class="overall-value-container" id="overallContainer">
+                    <div class="overall-value" id="overall">-</div>
+                    <div class="percentage-bracket" id="overallPercent">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© EIM Incentive Calculator • All calculations are estimates</p>
+        </div>
+    </div>
+
+    <script>
+        const slabs = [
+            { min: 0, max: 400000, inc: 0, dec: "-", ceo: "-", rnr: 0, label: "Below ₹4,00,000" },
+            { min: 400000, max: 600000, inc: 0, dec: "Dubai", ceo: "-", rnr: 58000, label: "₹4,00,000" },
+            { min: 600000, max: 800000, inc: 80, dec: "Dubai with Companion", ceo: "-", rnr: 116000, label: "₹6,00,000" },
+            { min: 800000, max: 1200000, inc: 120, dec: "Dubai with Companion", ceo: "-", rnr: 116000, label: "₹8,00,000" },
+            { min: 1200000, max: 2500000, inc: 130, dec: "Dubai With Companion + Laptop", ceo: "-", rnr: 166000, label: "₹12,00,000" },
+            { min: 2500000, max: 4530000, inc: 175, dec: "Dubai With Companion + Laptop + Georgia", ceo: "-", rnr: 286000, label: "₹25,00,000" },
+            { min: 4530000, max: 6000000, inc: 190, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo", rnr: 436000, label: "₹45,00,000" },
+            { min: 6000000, max: 7500000, inc: 190, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland", rnr: 636000, label: "₹60,00,000" },
+            { min: 7500000, max: 9000000, inc: 200, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland", rnr: 636000, label: "₹75,00,000" },
+            { min: 9000000, max: 10000000, inc: 200, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland (2 seats)", rnr: 986000, label: "₹90,00,000" },
+            { min: 10000000, max: 13600000, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland (2 seats)", rnr: 986000, label: "₹1,00,00,000" },
+            { min: 13600000, max: 27200000, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland (2 seats) + 2 Lakh", rnr: 1186000, label: "₹1,36,00,000" },
+            { min: 27200000, max: Infinity, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Cairo + Switzerland (2 seats) + 8 Lakh", rnr: 1786000, label: "₹2,72,00,000" }
+        ];
+
+        function formatIndian(value) {
+            value = value.replace(/\D/g, "");
+            let last3 = value.slice(-3);
+            let other = value.slice(0, -3);
+            if (other !== "") last3 = "," + last3;
+            return other.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + last3;
+        }
+
+        document.getElementById("wcp").addEventListener("input", function () {
+            this.value = formatIndian(this.value);
+        });
+
+        document.getElementById("calcBtn").addEventListener("click", function () {
+            const rawWcp = document.getElementById("wcp").value.replace(/,/g, "");
+            const pf = Number(document.getElementById("productFee").value);
+
+            if (!rawWcp || !pf) {
+                alert("Please enter WCP and Product Fee");
+                return;
+            }
+
+            if (pf < 0 || pf > 100) {
+                alert("Product Fee must be between 0 and 100%");
+                return;
+            }
+
+            const wcp = Number(rawWcp);
+            const slab = slabs.find(s => wcp >= s.min && wcp < s.max);
+
+            // Calculate Product Fee Amount
+            const productFeeAmount = Math.round(wcp * pf / 100);
+            
+            // Calculate Milestone Incentive Amount based on Product Fee
+            const milestoneAmount = Math.round(productFeeAmount * slab.inc / 100);
+            
+            // Calculate Cash Earning (WCP * Product Fee + Milestone Incentive * Product Fee)
+            const cashEarning = Math.round(wcp * pf / 100) + milestoneAmount;
+            
+            // Calculate Overall Incentive Value (Cash earning + RnR total sum)
+            const overallIncentive = cashEarning + slab.rnr;
+
+            // Calculate percentages
+            const cashPercent = Math.round((cashEarning / wcp) * 100);
+            const overallPercent = Math.round((overallIncentive / wcp) * 100);
+
+            // Update display values - show only percentages for Product Fee and Milestone Incentive
+            document.getElementById("slab").textContent = "₹ " + wcp.toLocaleString("en-IN");
+            document.getElementById("pfOut").textContent = pf + "%";
+            document.getElementById("inc").textContent = slab.inc + "%";
+            document.getElementById("dec").textContent = slab.dec;
+            document.getElementById("ceo").textContent = slab.ceo;
+
+            // Update cash earning with separate percentage in brackets
+            document.getElementById("cash").textContent = "₹ " + cashEarning.toLocaleString("en-IN");
+            document.getElementById("cashPercent").textContent = "(" + cashPercent + "%)";
+            
+            // Update overall incentive with separate percentage in brackets
+            document.getElementById("overall").textContent = "₹ " + overallIncentive.toLocaleString("en-IN");
+            document.getElementById("overallPercent").textContent = "(" + overallPercent + "%)";
+                
+            // Add subtle visual feedback
+            const outputCard = document.querySelector('.output-card');
+            outputCard.style.boxShadow = '0 8px 25px var(--glow)';
+            setTimeout(() => {
+                outputCard.style.boxShadow = '0 6px 20px var(--shadow)';
+            }, 800);
+        });
+        
+        // Add enter key support for both inputs
+        document.getElementById("wcp").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("calcBtn").click();
+            }
+        });
+        
+        document.getElementById("productFee").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("calcBtn").click();
+            }
+        });
+        
+        // Auto-focus on the first input
+        document.getElementById("wcp").focus();
+    </script>
+</body>
+</html>
