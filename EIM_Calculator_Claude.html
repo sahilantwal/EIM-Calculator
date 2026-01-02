@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIM Incentive Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #9d1b1b;
+            --primary-dark: #7a1515;
+            --primary-light: rgba(157, 27, 27, 0.1);
+            --accent: #d4af37;
+            --white: #ffffff;
+            --grey-50: #fafafa;
+            --grey-100: #f5f5f5;
+            --grey-200: #eeeeee;
+            --grey-500: #9e9e9e;
+            --grey-700: #424242;
+            --grey-900: #212121;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 12px 32px rgba(157, 27, 27, 0.12);
+            --success: #10b981;
+            --gradient-primary: linear-gradient(135deg, #9d1b1b 0%, #c92a2a 100%);
+            --gradient-gold: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            color: var(--grey-700);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(157, 27, 27, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 16px;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .logo i {
+            color: var(--white);
+            font-size: 32px;
+        }
+        
+        .header h1 {
+            color: var(--grey-900);
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: var(--grey-500);
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--white);
+            padding: 8px 20px;
+            border-radius: 24px;
+            display: inline-block;
+            box-shadow: var(--shadow-sm);
+            line-height: 1.5;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+        
+        .input-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+        
+        .input-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        /* Input Section */
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .input-group:last-of-type {
+            margin-bottom: 28px;
+        }
+        
+        .input-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .input-label i {
+            color: var(--primary);
+            margin-right: 10px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .input-label span {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--grey-900);
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-500);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        input {
+            width: 100%;
+            padding: 18px 18px 18px 52px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 16px;
+            border: 2px solid var(--grey-200);
+            background-color: var(--grey-50);
+            color: var(--grey-900);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        input:hover {
+            border-color: var(--grey-500);
+            background-color: var(--white);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: var(--white);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+        
+        input:focus + .input-wrapper i {
+            color: var(--primary);
+        }
+        
+        input::placeholder {
+            color: var(--grey-500);
+            font-weight: 400;
+        }
+        
+        #productFee {
+            padding-right: 60px;
+        }
+        
+        .percent-symbol {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--grey-500);
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 20px;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 16px;
+            border: none;
+            background: var(--gradient-primary);
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 16px rgba(157, 27, 27, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(157, 27, 27, 0.35);
+        }
+        
+        button:active {
+            transform: translateY(-1px);
+        }
+        
+        button i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* Output Section */
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--grey-100);
+        }
+        
+        .section-header i {
+            color: var(--primary);
+            margin-right: 12px;
+            font-size: 22px;
+        }
+        
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--grey-900);
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--grey-100);
+            transition: all 0.2s ease;
+        }
+        
+        .result-row:hover {
+            background: var(--grey-50);
+            margin: 0 -32px;
+            padding: 16px 32px;
+        }
+        
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            font-size: 14px;
+            color: var(--grey-700);
+            font-weight: 500;
+        }
+        
+        .result-label i {
+            margin-right: 12px;
+            color: var(--primary);
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .number-text {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 6px;
+            font-size: 14px;
+        }
+        
+        .sub-number-text {
+            font-weight: 600;
+            color: var(--grey-700);
+            margin-right: 6px;
+            font-size: 14px;
+        }
+        
+        .formula-note {
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-left: 6px;
+            font-style: italic;
+            opacity: 0.8;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+            color: var(--grey-900);
+            font-size: 15px;
+        }
+        
+        .highlight-row {
+            background: linear-gradient(135deg, rgba(157, 27, 27, 0.04) 0%, rgba(157, 27, 27, 0.02) 100%);
+            margin: 16px -32px;
+            padding: 20px 32px;
+            border-top: 2px solid rgba(157, 27, 27, 0.1);
+            border-bottom: 2px solid rgba(157, 27, 27, 0.1);
+            border-radius: 12px;
+        }
+        
+        .highlight-row:hover {
+            background: linear-gradient(135deg, rgba(157, 27, 27, 0.06) 0%, rgba(157, 27, 27, 0.04) 100%);
+        }
+        
+        .highlight-label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 15px;
+        }
+        
+        .section-header-label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 15px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .cash-earning-container,
+        .overall-value-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+        
+        .cash-earning {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--success);
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        .overall-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        
+        .percentage-bracket {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--grey-500);
+            margin-top: 4px;
+            line-height: 1.2;
+        }
+        
+        .reward-badge {
+            display: inline-block;
+            background: var(--gradient-gold);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding: 20px;
+            color: var(--grey-500);
+            font-size: 13px;
+            font-weight: 500;
+            animation: fadeIn 0.6s ease-out 0.4s both;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .card {
+                padding: 24px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .logo {
+                width: 64px;
+                height: 64px;
+            }
+            
+            .logo i {
+                font-size: 28px;
+            }
+            
+            input, button {
+                padding: 16px;
+                font-size: 15px;
+            }
+            
+            .input-wrapper i {
+                left: 16px;
+                font-size: 16px;
+            }
+            
+            input {
+                padding-left: 48px;
+            }
+            
+            .cash-earning {
+                font-size: 22px;
+            }
+            
+            .overall-value {
+                font-size: 26px;
+            }
+            
+            .highlight-row {
+                margin: 16px -24px;
+                padding: 18px 24px;
+            }
+            
+            .result-row:hover {
+                margin: 0 -24px;
+                padding: 16px 24px;
+            }
+        }
+        
+        /* Pulse animation for calculate button */
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 16px rgba(157, 27, 27, 0.25);
+            }
+            50% {
+                box-shadow: 0 4px 24px rgba(157, 27, 27, 0.4);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h1>EIM Incentive Calculator</h1>
+            <p>Exclusively for New EIMs hired in Jan'26</p>
+        </div>
+        
+        <!-- Input Card -->
+        <div class="card input-card">
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fas fa-rupee-sign"></i>
+                    <span>Enter WRP (₹)</span>
+                </div>
+                
+                <div class="input-wrapper">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <input type="text" id="wcp" placeholder="e.g. 6,00,000">
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fas fa-percentage"></i>
+                    <span>Product Fee (%)</span>
+                </div>
+                
+                <div class="input-wrapper">
+                    <i class="fas fa-sliders-h"></i>
+                    <input type="number" id="productFee" placeholder="e.g. 20" min="0" max="100">
+                    <span class="percent-symbol">%</span>
+                </div>
+            </div>
+            
+            <button id="calcBtn">
+                <i class="fas fa-chart-line"></i>
+                Calculate Incentive
+            </button>
+        </div>
+        
+        <!-- Output Card -->
+        <div class="card output-card">
+            <div class="section-header">
+                <i class="fas fa-chart-pie"></i>
+                <h2>Incentive Breakdown</h2>
+            </div>
+            
+            <!-- WCP Row -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-layer-group"></i>
+                    WRP
+                </div>
+                <div class="result-value" id="slab">-</div>
+            </div>
+            
+            <!-- 1. Product Fee -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-percentage"></i>
+                    <span class="number-text">1.</span>
+                    Product Fee (% of WRP)
+                </div>
+                <div class="result-value" id="pfOut">-</div>
+            </div>
+            
+            <!-- 2. Milestone Incentive -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-trophy"></i>
+                    <span class="number-text">2.</span>
+                    Milestone Incentive <br>(% of Product Fee)
+                </div>
+                <div class="result-value" id="inc">-</div>
+            </div>
+            
+            <!-- Cash Earning Highlight (1+2) -->
+            <div class="result-row highlight-row">
+                <div class="result-label highlight-label">
+                    <i class="fas fa-money-check-alt"></i>
+                    Cash Earning (% of WRP)
+                    <span class="formula-note">(1+2)</span>
+                </div>
+                <div class="cash-earning-container" id="cashContainer">
+                    <div class="cash-earning" id="cash">-</div>
+                    <div class="percentage-bracket" id="cashPercent">-</div>
+                </div>
+            </div>
+            
+            <!-- 3. Other Earnings Header -->
+            <div class="section-header-label">
+                <span class="number-text">3.</span>
+                Other Earnings
+            </div>
+            
+            <!-- 3.1 New Year Special -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-gift"></i>
+                    <span class="sub-number-text">3.1</span>
+                    New Year Special
+                </div>
+                <div class="result-value">
+                    <span id="dec">-</span>
+                    <span class="reward-badge">Reward</span>
+                </div>
+            </div>
+            
+            <!-- 3.2 CEO MDRT Council 2026 -->
+            <div class="result-row">
+                <div class="result-label">
+                    <i class="fas fa-crown"></i>
+                    <span class="sub-number-text">3.2</span>
+                    CEO MDRT Council 2026
+                </div>
+                <div class="result-value">
+                    <span id="ceo">-</span>
+                    <span class="reward-badge">Exclusive</span>
+                </div>
+            </div>
+            
+            <!-- Overall Incentive Highlight (1+2+3) -->
+            <div class="result-row highlight-row">
+                <div class="result-label highlight-label">
+                    <i class="fas fa-star"></i>
+                    Overall Incentive Value
+                    <span class="formula-note">(1+2+3)</span>
+                </div>
+                <div class="overall-value-container" id="overallContainer">
+                    <div class="overall-value" id="overall">-</div>
+                    <div class="percentage-bracket" id="overallPercent">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© EIM Incentive Calculator • All calculations are estimates</p>
+        </div>
+    </div>
+
+    <script>
+        const slabs = [
+            { min: 0, max: 400000, inc: 0, dec: "-", ceo: "-", rnr: 0, label: "Below ₹4,00,000" },
+            { min: 400000, max: 600000, inc: 0, dec: "Dubai", ceo: "-", rnr: 58000, label: "₹4,00,000" },
+            { min: 600000, max: 800000, inc: 80, dec: "Dubai with Companion", ceo: "-", rnr: 116000, label: "₹6,00,000" },
+            { min: 800000, max: 1200000, inc: 120, dec: "Dubai with Companion", ceo: "-", rnr: 116000, label: "₹8,00,000" },
+            { min: 1200000, max: 2500000, inc: 130, dec: "Dubai With Companion + Laptop", ceo: "-", rnr: 166000, label: "₹12,00,000" },
+            { min: 2500000, max: 4530000, inc: 175, dec: "Dubai With Companion + Laptop + Georgia", ceo: "-", rnr: 286000, label: "₹25,00,000" },
+            { min: 4530000, max: 6000000, inc: 190, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague", rnr: 436000, label: "₹45,00,000" },
+            { min: 6000000, max: 7500000, inc: 190, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam", rnr: 636000, label: "₹60,00,000" },
+            { min: 7500000, max: 9000000, inc: 200, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam", rnr: 636000, label: "₹75,00,000" },
+            { min: 9000000, max: 10000000, inc: 200, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam", rnr: 636000, label: "₹90,00,000" },
+            { min: 10000000, max: 15600000, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam (2 seats)", rnr: 986000, label: "₹1,00,00,000" },
+            { min: 13600000, max: 31300000, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam (2 seats) + 2 Lakh", rnr: 1186000, label: "₹1,36,00,000" },
+            { min: 31300000, max: Infinity, inc: 220, dec: "Dubai With Companion + Laptop + Georgia", ceo: "Prague + Amsterdam (2 seats) + 8 Lakh", rnr: 1786000, label: "₹2,72,00,000" }
+        ];
+
+        function formatIndian(value) {
+            value = value.replace(/\D/g, "");
+            let last3 = value.slice(-3);
+            let other = value.slice(0, -3);
+            if (other !== "") last3 = "," + last3;
+            return other.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + last3;
+        }
+
+        document.getElementById("wcp").addEventListener("input", function () {
+            this.value = formatIndian(this.value);
+        });
+
+        document.getElementById("calcBtn").addEventListener("click", function () {
+            const rawWcp = document.getElementById("wcp").value.replace(/,/g, "");
+            const pf = Number(document.getElementById("productFee").value);
+
+            if (!rawWcp || !pf) {
+                alert("Please enter WCP and Product Fee");
+                return;
+            }
+
+            if (pf < 0 || pf > 100) {
+                alert("Product Fee must be between 0 and 100%");
+                return;
+            }
+
+            const wcp = Number(rawWcp);
+            const slab = slabs.find(s => wcp >= s.min && wcp < s.max);
+
+            const productFeeAmount = Math.round(wcp * pf / 100);
+            const milestoneAmount = Math.round(productFeeAmount * slab.inc / 100);
+            const cashEarning = Math.round(wcp * pf / 100) + milestoneAmount;
+            const overallIncentive = cashEarning + slab.rnr;
+
+            const cashPercent = Math.round((cashEarning / wcp) * 100);
+            const overallPercent = Math.round((overallIncentive / wcp) * 100);
+
+            document.getElementById("slab").textContent = "₹ " + wcp.toLocaleString("en-IN");
+            document.getElementById("pfOut").textContent = pf + "%";
+            document.getElementById("inc").textContent = slab.inc + "%";
+            document.getElementById("dec").textContent = slab.dec;
+            document.getElementById("ceo").textContent = slab.ceo;
+
+            document.getElementById("cash").textContent = "₹ " + cashEarning.toLocaleString("en-IN");
+            document.getElementById("cashPercent").textContent = "(" + cashPercent + "%)";
+            
+            document.getElementById("overall").textContent = "₹ " + overallIncentive.toLocaleString("en-IN");
+            document.getElementById("overallPercent").textContent = "(" + overallPercent + "%)";
+            
+            const outputCard = document.querySelector('.output-card');
+            outputCard.style.boxShadow = '0 12px 32px rgba(157, 27, 27, 0.2)';
+            setTimeout(() => {
+                outputCard.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.06)';
+            }, 800);
+        });
+        
+        document.getElementById("wcp").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("calcBtn").click();
+            }
+        });
+        
+        document.getElementById("productFee").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("calcBtn").click();
+            }
+        });
+        
+        document.getElementById("wcp").focus();
+    </script>
+</body>
+</html>
