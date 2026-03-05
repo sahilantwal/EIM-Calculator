@@ -576,7 +576,7 @@
                 <i class="fas fa-calculator"></i>
             </div>
             <h1>EIM Incentive Calculator</h1>
-            <p>Exclusively for New EIMs hired in Mar'26</p>
+            <p>Exclusively for New EIMs hired in Mar'26<br> Assuming WRP=WCP</p>
         </div>
         
         <!-- Input Card -->
@@ -759,7 +759,13 @@
             const slab = slabs.find(s => wcp >= s.min && wcp < s.max);
 
             const productFeeAmount = Math.round(wcp * pf / 100);
-            const milestoneAmount = Math.round(productFeeAmount * slab.inc / 100);
+            let milestonePercent = slab.inc;
+
+if (wcp >= 600000 && wcp < 800000) {
+    milestonePercent = 80;
+}
+
+const milestoneAmount = Math.round(productFeeAmount * milestonePercent / 100);
             const cashEarning = Math.round(wcp * pf / 100) + milestoneAmount;
             const overallIncentive = cashEarning + slab.rnr;
 
@@ -768,7 +774,7 @@
 
             document.getElementById("slab").textContent = "₹ " + wcp.toLocaleString("en-IN");
             document.getElementById("pfOut").textContent = pf + "%";
-            document.getElementById("inc").textContent = slab.inc + "%";
+            document.getElementById("inc").textContent = milestonePercent + "%";
             document.getElementById("dec").textContent = slab.dec;
             document.getElementById("ceo").textContent = slab.ceo;
 
@@ -800,5 +806,4 @@
         document.getElementById("wcp").focus();
     </script>
 </body>
-
 </html>
