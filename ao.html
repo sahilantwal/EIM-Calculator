@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AO Payout Calculator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --maroon: #7b0d0d;
+  --maroon-deep: #5a0909;
+  --maroon-mid: #9e1515;
+  --maroon-100: rgba(123,13,13,0.08);
+  --maroon-50: rgba(123,13,13,0.04);
+  --white: #ffffff;
+  --grey-50: #f8f8f8;
+  --grey-100: #f1f1f1;
+  --grey-200: #e4e4e4;
+  --grey-300: #cccccc;
+  --grey-400: #999999;
+  --grey-500: #666666;
+  --grey-700: #333333;
+  --emerald: #1c8a5a;
+  --emerald-bg: rgba(28,138,90,0.08);
+  --amber: #a8720f;
+  --amber-bg: rgba(168,114,15,0.08);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.07);
+  --transition: 180ms ease;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #f2f0ef;
+  color: var(--grey-700);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* remove native number spinners everywhere - custom steppers / hints cover this */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* HEADER */
+.header { background: linear-gradient(155deg, var(--maroon-deep), #430707); border-bottom: 1px solid rgba(0,0,0,0.2); }
+.header-inner { max-width: 760px; margin: 0 auto; padding: 26px 24px 0; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.header-wordmark { display: flex; align-items: center; gap: 12px; }
+.header-wordmark-icon {
+  width: 36px; height: 36px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.85); font-size: 14px; flex-shrink: 0;
+}
+.header-wordmark h1 { font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: -0.01em; }
+.header-wordmark p { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 400; margin-top: 1px; letter-spacing: 0.02em; text-transform: uppercase; }
+.header-actions { display: flex; gap: 6px; }
+.hdr-btn {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.7);
+  width: 34px; height: 34px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px; transition: all var(--transition);
+}
+.hdr-btn:hover { background: rgba(255,255,255,0.14); color: white; }
+.hdr-btn.danger:hover { background: rgba(255,80,80,0.15); color: #ffaaaa; }
+.header-kpis {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-md) var(--radius-md) 0 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); border-bottom: none;
+}
+.kpi-cell { background: rgba(255,255,255,0.03); padding: 13px 14px; transition: background var(--transition); }
+.kpi-cell:hover { background: rgba(255,255,255,0.07); }
+.kpi-val { font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: -0.02em; line-height: 1; margin-bottom: 5px; }
+.kpi-lbl { font-size: 9.5px; color: rgba(255,255,255,0.4); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* CONTAINER */
+.container { max-width: 760px; margin: 0 auto; padding: 22px 20px 48px; }
+
+/* CARDS */
+.card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--grey-200); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow-sm); transition: box-shadow var(--transition); }
+.card-hd { padding: 13px 16px; border-bottom: 1px solid var(--grey-100); display: flex; align-items: center; gap: 10px; background: var(--grey-50); }
+.card-hd-icon { width: 28px; height: 28px; background: var(--maroon-100); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--maroon); font-size: 11.5px; flex-shrink: 0; }
+.card-hd-title { font-size: 13px; font-weight: 700; color: var(--grey-700); flex: 1; letter-spacing: -0.01em; }
+.card-hd-sub { font-size: 11px; color: var(--grey-400); font-weight: 600; }
+.card-body { padding: 16px; }
+
+/* COLLAPSIBLE CARD HEADER (Payout Breakdown dropdown) */
+.collapsible-hd { cursor: pointer; user-select: none; }
+.collapsible-hd:hover { background: var(--maroon-50); }
+.collapsible-hd:focus-visible { outline: 2px solid var(--maroon); outline-offset: -2px; }
+.breakdown-chevron { color: var(--grey-400); font-size: 12px; transition: transform 220ms ease, color var(--transition); flex-shrink: 0; }
+.breakdown-chevron.open { transform: rotate(180deg); color: var(--maroon); }
+.breakdown-wrap { max-height: 0; overflow: hidden; transition: max-height 280ms ease; }
+.breakdown-wrap.open { max-height: 2000px; }
+.breakdown-inner { padding: 0 16px; transition: padding 280ms ease; }
+.breakdown-wrap.open .breakdown-inner { padding: 16px; }
+
+/* FORM */
+.field { margin-bottom: 14px; } .field:last-child { margin-bottom: 0; }
+.field-label { display: block; margin-bottom: 5px; font-size: 11px; color: var(--grey-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.input-box { border: 1px solid var(--grey-200); border-radius: var(--radius-sm); background: var(--white); transition: all var(--transition); overflow: hidden; }
+.input-box:focus-within { border-color: var(--maroon); box-shadow: 0 0 0 3px var(--maroon-100); }
+.input-box.warn { border-color: var(--maroon-mid); }
+.input-box.warn:focus-within { box-shadow: 0 0 0 3px rgba(158,21,21,0.1); }
+.field-warn { display: flex; align-items: flex-start; gap: 6px; font-size: 11.5px; color: var(--maroon-mid); font-weight: 500; line-height: 1.4; margin-top: 6px; }
+.field-warn.hidden { display: none; }
+.field-warn i { margin-top: 1px; flex-shrink: 0; }
+select, input[type="number"] { width: 100%; padding: 10px 12px; font-size: 14px; color: var(--grey-700); background: transparent; border: none; outline: none; font-weight: 600; appearance: none; }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%237b0d0d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+}
+select:focus, input:focus { color: var(--maroon); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Prefix / suffix affixes (₹, %) */
+.input-box.affix-row { display: flex; align-items: center; }
+.input-box.affix-row input[type="number"] { flex: 1; min-width: 0; padding-left: 3px; padding-right: 12px; }
+.input-box.affix-row.suffix input[type="number"] { padding-left: 12px; padding-right: 3px; }
+.input-affix { padding-left: 12px; color: var(--grey-400); font-weight: 700; font-size: 13px; user-select: none; flex-shrink: 0; }
+.input-box.affix-row.suffix .input-affix { padding-left: 0; padding-right: 12px; order: 2; }
+
+/* checkbox row */
+.checkline { display: flex; align-items: center; gap: 10px; padding: 4px 2px; }
+.checkline input { width: 17px; height: 17px; accent-color: var(--maroon); cursor:pointer; }
+.checkline label { margin: 0; font-size: 13px; color: var(--grey-700); font-weight: 500; cursor:pointer; }
+
+/* SEGMENTED TOGGLE */
+.seg-toggle { display: flex; gap: 2px; background: var(--grey-100); border-radius: var(--radius-sm); padding: 3px; }
+.seg-btn { flex: 1; padding: 9px 10px; border-radius: 4px; font-size: 12.5px; font-weight: 600; color: var(--grey-500); cursor: pointer; transition: all var(--transition); text-align: center; border: none; background: transparent; }
+.seg-btn.active { background: var(--maroon); color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+
+/* BUTTONS */
+.cta-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin: 18px 0; }
+.btn-primary { padding: 15px 22px; background: var(--maroon); color: var(--white); border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 700; cursor: pointer; transition: all var(--transition); display: flex; align-items: center; justify-content: center; gap: 9px; letter-spacing: -0.01em; }
+.btn-primary:hover { background: var(--maroon-deep); }
+.btn-primary:active { transform: scale(0.99); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; background: var(--grey-400); }
+.btn-primary:disabled:hover { background: var(--grey-400); }
+.btn-ghost { padding: 15px 18px; background: var(--white); color: var(--grey-500); border: 1px solid var(--grey-200); border-radius: var(--radius-md); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+.btn-ghost:hover { color: var(--maroon); border-color: rgba(123,13,13,0.2); background: var(--maroon-50); }
+
+/* SCENARIOS */
+.scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.scenario-btn { padding: 12px 14px; background: var(--white); color: var(--grey-500); border: 1px solid var(--grey-200); border-radius: var(--radius-md); font-size: 12px; font-weight: 600; cursor: pointer; transition: all var(--transition); text-align: left; line-height: 1.4; }
+.scenario-btn span { display: block; font-size: 11px; color: var(--grey-400); font-weight: 400; margin-top: 2px; }
+.scenario-btn:hover { border-color: rgba(123,13,13,0.2); background: var(--maroon-50); color: var(--maroon); }
+
+/* STEPPER INPUT */
+.input-box.stepper-input { display: flex; align-items: stretch; }
+.stepper-input input[type="number"] { text-align: center; flex: 1; min-width: 0; padding-left: 2px; padding-right: 2px; }
+.stepper-btn {
+  width: 38px; flex-shrink: 0; background: var(--grey-50); border: none; color: var(--maroon); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background var(--transition); display: flex; align-items: center; justify-content: center;
+}
+.stepper-btn:hover { background: var(--maroon-100); }
+.stepper-btn:active { background: var(--maroon-100); transform: scale(0.96); }
+.stepper-btn.minus { border-right: 1px solid var(--grey-200); }
+.stepper-btn.plus { border-left: 1px solid var(--grey-200); }
+
+/* FIELD HINT (live lakh-formatted readout) - appears once, directly under the field it describes */
+.field-hint { font-size: 11px; color: var(--grey-400); margin-top: 6px; font-weight: 500; min-height: 14px; }
+.field-hint strong { color: var(--maroon); font-weight: 700; }
+
+/* CARD CONTRIBUTION - the single place a card's WCP/₹ contribution is shown */
+.card-contribution { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 10px 12px; background: var(--maroon-50); border: 1px solid var(--maroon-100); border-radius: var(--radius-sm); font-size: 12.5px; color: var(--grey-500); }
+.card-contribution i { color: var(--maroon); font-size: 11px; flex-shrink: 0; }
+.card-contribution strong { color: var(--maroon); font-weight: 700; }
+
+/* TOTAL WCP — deliberately minimal */
+.total-wcp-card { border-color: var(--maroon-mid); background: linear-gradient(180deg, var(--white), var(--maroon-50)); }
+.total-wcp-body { text-align: center; padding: 20px 18px; }
+.total-wcp-label { font-size: 11px; color: var(--grey-500); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.total-wcp-val { font-size: 27px; font-weight: 800; color: var(--maroon); letter-spacing: -0.02em; }
+
+/* INFO TOOLTIP */
+.field-label-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.field-label-row .field-label { margin-bottom: 0; }
+.info-tip { position: relative; display: inline-flex; color: var(--grey-400); cursor: help; }
+.info-tip i { font-size: 11px; }
+.info-tip:hover, .info-tip:focus { color: var(--maroon); outline: none; }
+.info-tip:hover .info-tip-bubble, .info-tip:focus .info-tip-bubble { opacity: 1; visibility: visible; transform: translate(-50%,0); }
+.info-tip-bubble {
+  position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translate(-50%,4px); width: 210px;
+  background: var(--maroon-deep); color: rgba(255,255,255,0.92); font-size: 11.5px; font-weight: 500; line-height: 1.5;
+  padding: 9px 11px; border-radius: 8px; opacity: 0; visibility: hidden; transition: all 160ms ease; z-index: 60;
+  text-transform: none; letter-spacing: normal; pointer-events: none; text-align: left;
+}
+.info-tip-bubble::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--maroon-deep); }
+
+/* SECTION LABEL */
+.section-lbl { font-size: 10px; font-weight: 700; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.1em; margin: 20px 0 10px; display: flex; align-items: center; gap: 10px; }
+.section-lbl:first-of-type { margin-top: 0; }
+.section-lbl::after { content: ''; flex: 1; height: 1px; background: var(--grey-200); }
+
+.loading-dots { display: inline-flex; gap: 3px; margin-left: 5px; }
+.loading-dots span { width: 4px; height: 4px; background: rgba(255,255,255,0.7); border-radius: 50%; animation: dp 1.4s ease infinite; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dp { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+.hidden { display: none !important; }
+
+/* RESULTS */
+.results.first-reveal { animation: resultsReveal 500ms ease; }
+@keyframes resultsReveal { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+.reward-hero { background: linear-gradient(155deg, var(--maroon-deep), #430707); border-radius: var(--radius-lg); padding: 26px 24px; text-align: center; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.2); }
+.reward-eyebrow { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.reward-amount { font-size: 44px; font-weight: 800; color: var(--white); letter-spacing: -0.04em; line-height: 1; margin-bottom: 8px; }
+.reward-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
+.tier-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 5px 14px; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.65); margin: 5px 4px 0; letter-spacing: 0.02em; }
+
+/* CAREER MILESTONES — ARDM promotion & CEO Council, highlighted separately from the payout figures */
+.milestone-row { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 12px; }
+.milestone-card { display: flex; align-items: center; gap: 12px; background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-md); padding: 14px 16px; transition: all var(--transition); }
+.milestone-card.qualified { border-color: var(--emerald); background: linear-gradient(180deg, var(--white), var(--emerald-bg)); }
+.milestone-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--grey-100); color: var(--grey-400); font-size: 14px; flex-shrink: 0; transition: all var(--transition); }
+.milestone-card.qualified .milestone-icon { background: var(--emerald-bg); color: var(--emerald); }
+.milestone-label { font-size: 10.5px; font-weight: 700; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.milestone-status { font-size: 13.5px; font-weight: 700; color: var(--grey-700); }
+.milestone-card.qualified .milestone-status { color: var(--emerald); }
+
+/* QUICK STATS — 3 headline numbers only; details live in the breakdown card below */
+.stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.stat-tile { background: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-md); padding: 15px 10px; text-align: center; transition: opacity var(--transition); }
+.stat-tile.subdued { opacity: 0.4; }
+.stat-val { font-size: 16px; font-weight: 800; color: var(--maroon); letter-spacing: -0.02em; margin-bottom: 4px; }
+.stat-lbl { font-size: 9.5px; color: var(--grey-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* BREAKDOWN */
+.breakdown-row { display: flex; align-items: flex-start; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--grey-100); gap:10px; }
+.breakdown-row:last-of-type { border-bottom: none; }
+.bd-label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--grey-500); }
+.bd-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top:5px; }
+.bd-main { display:flex; flex-direction:column; }
+.bd-formula { font-size: 10.5px; color: var(--grey-400); margin-top:2px; }
+.bd-amount { font-size: 14px; font-weight: 700; color: var(--grey-700); white-space:nowrap; }
+.bd-amount.neg { color: var(--maroon-mid); }
+.bd-total { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 0; margin-top: 4px; border-top: 2px solid var(--grey-200); }
+.bd-total-label { font-size: 14px; font-weight: 700; color: var(--grey-700); }
+.bd-total-val { font-size: 18px; font-weight: 800; color: var(--maroon); }
+
+/* CHART */
+.chart-wrap { position: relative; height: 220px; }
+
+/* INSIGHTS */
+.insight-box { background: var(--grey-50); border: 1px solid var(--grey-200); border-left: 3px solid var(--maroon); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 14px 16px; margin-bottom: 10px; }
+.insight-box.ok { border-left-color: var(--emerald); }
+.insight-box.warn { border-left-color: var(--amber); }
+.insight-box.hidden { display: none; }
+.insight-title { font-size: 12px; font-weight: 700; color: var(--maroon); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.insight-box.ok .insight-title { color: var(--emerald); }
+.insight-box.warn .insight-title { color: var(--amber); }
+.insight-text { font-size: 13px; color: var(--grey-500); line-height: 1.55; }
+.insight-text strong { color: var(--grey-700); font-weight: 700; }
+.insight-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+
+/* STATUS TABLE */
+.mix-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mix-tbl thead tr { background: var(--grey-50); border-bottom: 2px solid var(--grey-200); }
+.mix-tbl th { padding: 8px 10px; font-weight: 700; text-align: left; color: var(--grey-500); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.mix-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--grey-100); color: var(--grey-700); }
+.mix-tbl tr:last-child td { border-bottom: none; }
+.status-chip { display:inline-flex; align-items:center; gap:5px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.status-chip.ok { background: var(--emerald-bg); color: var(--emerald); }
+.status-chip.no { background: var(--maroon-100); color: var(--maroon); }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+.modal-overlay.active { display: flex; }
+.modal-box { background: var(--white); border-radius: var(--radius-lg); max-width: 560px; width: 100%; max-height: 88vh; overflow-y: auto; border: 1px solid var(--grey-200); }
+.modal-hd { padding: 18px 22px; border-bottom: 1px solid var(--grey-100); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--white); z-index: 2; }
+.modal-hd-title { font-size: 16px; font-weight: 700; color: var(--maroon); }
+.modal-close { width: 30px; height: 30px; background: var(--grey-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--grey-400); cursor: pointer; transition: all var(--transition); border: none; font-size: 12px; }
+.modal-close:hover { background: var(--grey-200); color: var(--maroon); }
+.modal-bd { padding: 18px 22px; }
+.modal-section-lbl { font-size: 10px; font-weight: 700; color: var(--maroon); text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--grey-100); }
+.modal-section-lbl:first-child { margin-top: 0; }
+.assumption-row { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--grey-100); }
+.assumption-row:last-child { border-bottom: none; }
+.assump-icon { width: 24px; height: 24px; background: var(--maroon-100); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--maroon); font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+.assump-text { font-size: 13px; color: var(--grey-500); line-height: 1.5; flex: 1; padding-top: 3px; }
+.mark { color: var(--maroon); font-weight: 700; background: var(--maroon-100); padding: 1px 5px; border-radius: 3px; }
+.rate-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rate-tbl thead tr { background: var(--maroon); color: white; }
+.rate-tbl th { padding: 8px 10px; font-weight: 600; text-align: left; letter-spacing: 0.02em; }
+.rate-tbl td { padding: 7px 10px; border-bottom: 1px solid var(--grey-100); color: var(--grey-500); }
+.rate-tbl tr:nth-child(even) td { background: var(--grey-50); }
+.rate-tbl tr:last-child td { border-bottom: none; }
+.rate-tbl td.hl { font-weight: 700; color: var(--maroon); }
+
+/* PULSE (recalculation feedback) */
+.pulse-update { animation: pulseUpdate 550ms ease; }
+@keyframes pulseUpdate { 0% { transform: scale(1); } 35% { transform: scale(1.045); } 100% { transform: scale(1); } }
+
+@media(max-width:540px) {
+  .header-kpis { grid-template-columns: repeat(2,1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .scenario-grid { grid-template-columns: 1fr; }
+  .cta-row { grid-template-columns: 1fr; }
+  .reward-amount { font-size: 34px; }
+  .header-inner { padding: 20px 16px 0; }
+  .container { padding: 16px 14px 36px; }
+  .stat-val { font-size: 14px; }
+  .milestone-row { grid-template-columns: 1fr; }
+}
+@media(prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+</style>
+</head>
+<body>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <span class="modal-hd-title">Calculation Reference</span>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-bd">
+      <div class="modal-section-lbl">WCP Ask Slabs</div>
+      <div style="overflow-x:auto;">
+        <table class="rate-tbl">
+          <thead><tr><th>Slab</th><th>Contest till 15 Sep</th><th>Contest till 30 Sep</th><th>Cash</th><th>Trip</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>₹1.25L</td><td>₹1.5L</td><td class="hl">₹10,000</td><td>None</td></tr>
+            <tr><td>2</td><td>₹2.0L</td><td>₹2.5L</td><td class="hl">₹25,000</td><td>None</td></tr>
+            <tr><td>3</td><td>₹2.5L</td><td>₹3.5L</td><td class="hl">₹35,000</td><td>None</td></tr>
+            <tr><td>4</td><td>₹3.5L</td><td>₹5.0L</td><td class="hl">None</td><td>Cordelia 2N</td></tr>
+            <tr><td>5</td><td>₹5.0L</td><td>₹7.5L</td><td class="hl">₹20,000</td><td class="hl">Cordelia 2N</td></tr>
+            <tr><td>6</td><td>₹6.5L</td><td>₹10.0L</td><td class="hl">None</td><td class="hl">Bali 2N/3D</td></tr>
+            <tr><td>7</td><td>₹8.0L</td><td>₹12.0L</td><td class="hl">₹25,000</td><td class="hl">Bali 2N/3D</td></tr>
+            <tr><td>9</td><td>≥ ₹12.0L</td><td>≥ ₹12.0L</td><td class="hl">₹25,000 + ₹25,000 for every complete ₹2L beyond ₹12L</td><td class="hl">Bali 2N/3D</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-section-lbl">Initiative Rules</div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-users"></i></div><div class="assump-text">Minimum <span class="mark">2 L1 Active in Sep 2026</span> required. For this count, <span class="mark">Existing Active L1s + Recruited L1s</span> are considered together - else cash payout is reduced by <span class="mark">50%</span> and trips carry an additional <span class="mark">₹10,000 co-pay</span>.</div></div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-layer-group"></i></div><div class="assump-text">At <span class="mark">₹12L</span> total WCP, the top slab pays <span class="mark">₹25,000</span>. Every complete <span class="mark">₹2L beyond ₹12L</span> adds another <span class="mark">₹25,000</span> (e.g. ₹15L = ₹25,000 + ₹25,000).</div></div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-plane"></i></div><div class="assump-text">Trip encashment rates: <span class="mark">Cordelia ₹45,000</span> and <span class="mark">Bali ₹80,000</span>.</div></div>
+
+      <div class="modal-section-lbl">Quality New L1 Recruitment</div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-user-check"></i></div><div class="assump-text">For each <span class="mark">newly recruited</span> L1 with ≥ ₹2L WCP in M0 → <span class="mark">₹2,500</span> per L1. If the L1 achieves <span class="mark">Cordelia qualification</span> (₹3.5L till 15 Sep / ₹5L till 30 Sep) → <span class="mark">₹6,000</span> per L1.</div></div>
+
+      <div class="modal-section-lbl">Quarterly Top L1 Increase</div>
+      <table class="rate-tbl">
+        <thead><tr><th>Increase in Top L1 count</th><th>Reward</th></tr></thead>
+        <tbody>
+          <tr><td>+1</td><td class="hl">₹7,500</td></tr>
+          <tr><td>+2</td><td class="hl">₹15,000</td></tr>
+          <tr><td>+3 or more</td><td class="hl">₹30,000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="modal-section-lbl">CEO Council &amp; ARDM (Rolling 12 Months)</div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-trophy"></i></div><div class="assump-text">CEO Council Option 2: <span class="mark">₹85L WRP</span> → Prague; <span class="mark">₹100L WRP</span> → Prague + Amsterdam.</div></div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-arrow-up"></i></div><div class="assump-text"><span class="mark">₹12L WCP</span> + <span class="mark">3 Quality L1s</span> recruited in rolling 12 months → ARDM business criteria met.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-wordmark">
+        <div class="header-wordmark-icon"><i class="fas fa-chart-bar"></i></div>
+        <div>
+          <h1>AO Payout Calculator</h1>
+          <p>Agency Officer Program</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="hdr-btn" onclick="openModal()" title="Reference Guide"><i class="fas fa-info-circle"></i></button>
+        <button class="hdr-btn danger" onclick="clearAll()" title="Reset All"><i class="fas fa-trash-alt"></i></button>
+      </div>
+    </div>
+    <div class="header-kpis">
+      <div class="kpi-cell"><div class="kpi-val" id="hdrWcp">₹0.00L</div><div class="kpi-lbl">Total WCP</div></div>
+      <div class="kpi-cell"><div class="kpi-val" id="hdrSlab">None</div><div class="kpi-lbl">Slab Reached</div></div>
+      <div class="kpi-cell"><div class="kpi-val" id="hdrTrip">No</div><div class="kpi-lbl">Trip</div></div>
+      <div class="kpi-cell"><div class="kpi-val" id="hdrPayout">₹0.00L</div><div class="kpi-lbl">Total Payout</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- CONTEST PERIOD -->
+  <div class="section-lbl">Contest Period</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="seg-toggle" id="periodToggle">
+        <button class="seg-btn active" data-period="15">Contest till 15th Sep</button>
+        <button class="seg-btn" data-period="30">Contest till 30th Sep</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WCP COMPONENTS -->
+  <div class="section-lbl">WCP Components This Period</div>
+
+  <!-- 1. EXISTING L1 TEAM -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-hd-icon"><i class="fas fa-users"></i></div>
+      <div class="card-hd-title">1. Existing L1 Team</div>
+      <span class="info-tip" tabindex="0" aria-label="L1 = your first-line downline agents (Executive/Insurance Manager). For the September initiative, Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay."><i class="fas fa-circle-info"></i><span class="info-tip-bubble">Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay.</span></span>
+    </div>
+    <div class="card-body">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label"># L1 Active This Period</label>
+          <div class="input-box stepper-input">
+            <button type="button" class="stepper-btn minus" onclick="stepValue('l1Active',-1,0)" aria-label="Decrease active L1s">−</button>
+            <input type="number" id="l1Active" value="1" min="0">
+            <button type="button" class="stepper-btn plus" onclick="stepValue('l1Active',1,0)" aria-label="Increase active L1s">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Avg WCP</label>
+          <div class="input-box affix-row"><span class="input-affix">₹</span><input type="number" id="avgL1WCP" value="1500000" min="0"></div>
+          <div class="field-hint" id="avgL1WCPHint"></div>
+        </div>
+      </div>
+      <div class="card-contribution"><i class="fas fa-circle-plus"></i><span id="l1Contribution">Adds ₹0 to WCP</span></div>
+    </div>
+  </div>
+
+  <!-- 2. RECRUITED L1s -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-hd-icon"><i class="fas fa-user-plus"></i></div>
+      <div class="card-hd-title">2. Recruited L1s</div>
+    </div>
+    <div class="card-body">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label"># New L1 Recruited This Month</label>
+          <div class="input-box stepper-input">
+            <button type="button" class="stepper-btn minus" onclick="stepValue('recruitedL1Count',-1,0)" aria-label="Decrease recruited L1s">−</button>
+            <input type="number" id="recruitedL1Count" value="0" min="0">
+            <button type="button" class="stepper-btn plus" onclick="stepValue('recruitedL1Count',1,0)" aria-label="Increase recruited L1s">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">Avg WCP
+
+</label>
+          <div class="input-box affix-row"><span class="input-affix">₹</span><input type="number" id="avgRecruitedL1WCP" value="0" min="0"></div>
+          <div class="field-hint" id="avgRecruitedL1WCPHint"></div>
+        </div>
+      </div>
+      <div class="card-contribution"><i class="fas fa-circle-plus"></i><span id="recruitedContribution">Adds ₹0 to WCP</span></div>
+    </div>
+  </div>
+
+  <!-- TOTAL WCP - headline number only -->
+  <div class="card total-wcp-card">
+    <div class="total-wcp-body">
+      <div class="total-wcp-label">Total WCP Sourced</div>
+      <div class="total-wcp-val" id="totalWcpDisplay">₹0</div>
+    </div>
+  </div>
+
+  <!-- QUARTERLY BONUS -->
+  <div class="section-lbl">Quarterly Bonus</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field" style="margin-bottom:0;">
+        <label class="field-label">Quarterly Increase in Top L1 Count</label>
+        <div class="seg-toggle" id="topL1Toggle">
+          <button type="button" class="seg-btn active" data-val="0">None</button>
+          <button type="button" class="seg-btn" data-val="1">+1</button>
+          <button type="button" class="seg-btn" data-val="2">+2</button>
+          <button type="button" class="seg-btn" data-val="3">+3 or more</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANNUAL METRICS -->
+  <div class="section-lbl">
+    CEO Council &amp; ARDM (Rolling 12 Months)
+    <span class="info-tip" tabindex="0" aria-label="ARDM = Associate Regional Development Manager, a full-time promoted role unlocked by rolling WCP and recruitment criteria."><i class="fas fa-circle-info"></i><span class="info-tip-bubble">ARDM = Associate Regional Development Manager, a full-time promoted role unlocked by rolling WCP and recruitment criteria.</span></span>
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-hd-icon"><i class="fas fa-trophy"></i></div>
+      <div class="card-hd-title">Annual Figures</div>
+      <span class="card-hd-sub">Contest-independent</span>
+    </div>
+    <div class="card-body">
+      <div class="two-col">
+        <div class="field">
+          <label class="field-label">Rolling 12M Business Figure</label>
+          <div class="input-box affix-row"><span class="input-affix">₹</span><input type="number" id="annualWCP" value="1500000" min="0"></div>
+          <div class="field-hint" id="annualWCPHint"></div>
+        </div>
+        <div class="field">
+          <label class="field-label">Quality L1s Recruited, Rolling 12 Months</label>
+          <div class="input-box stepper-input">
+            <button type="button" class="stepper-btn minus" onclick="stepValue('annualL1',-1,0)" aria-label="Decrease L1s recruited annually">−</button>
+            <input type="number" id="annualL1" value="1" min="0">
+            <button type="button" class="stepper-btn plus" onclick="stepValue('annualL1',1,0)" aria-label="Increase L1s recruited annually">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="field-warn hidden" id="annualValidationMsg"><i class="fas fa-triangle-exclamation"></i><span></span></div>
+      <div class="field-warn hidden" id="annualL1ValidationMsg"><i class="fas fa-triangle-exclamation"></i><span></span></div>
+    </div>
+  </div>
+
+  <!-- TRIP PREFERENCE -->
+  <div class="section-lbl">Trip Preference</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="checkline">
+        <input type="checkbox" id="encashTrip" checked>
+        <label for="encashTrip">Encash the earned trip instead of travelling (Cordelia ₹45,000 / Bali ₹80,000)</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-row">
+    <button class="btn-primary" id="calcBtn" onclick="handleCalculate()">
+      <i class="fas fa-calculator"></i> Calculate Payout
+      <span class="loading-dots hidden" id="ldots"><span></span><span></span><span></span></span>
+    </button>
+    <button class="btn-ghost" onclick="clearAll()"><i class="fas fa-redo-alt"></i> Reset</button>
+  </div>
+
+  <!-- SCENARIOS -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-hd-icon"><i class="fas fa-flask"></i></div>
+      <div class="card-hd-title">Example Scenarios</div>
+    </div>
+    <div class="card-body">
+      <div class="scenario-grid">
+        <button class="scenario-btn" onclick="loadScenario('solo')">Cordelia Example <span>2 L1s, ₹3.5L WCP, till 15 Sep</span></button>
+        <button class="scenario-btn" onclick="loadScenario('single_l1')">Single L1 Recruiter <span>1 L1, ₹15L WCP, till 15 Sep</span></button>
+        <button class="scenario-btn" onclick="loadScenario('two_l1')">Two Active L1s <span>Full initiative payout</span></button>
+        <button class="scenario-btn" onclick="loadScenario('power')">Power Recruiter <span>CEO Council + ARDM business criteria</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results" id="results">
+
+    <div class="section-lbl">Results</div>
+
+    <div class="reward-hero">
+      <div class="reward-eyebrow">Total AO Payout - This Period</div>
+      <div class="reward-amount" id="finalReward">₹0</div>
+      <div class="reward-sub" id="rewardSub">Cash reward + trip encashment + L1 incentives</div>
+      <div>
+        <span class="tier-pill" id="slabPill"><i class="fas fa-layer-group"></i> <span id="slabLabel">Slab: none yet</span></span>
+        <span class="tier-pill" id="initPill"><i class="fas fa-bolt"></i> <span id="initLabel">Initiative: pending</span></span>
+      </div>
+    </div>
+
+    <div class="milestone-row">
+      <div class="milestone-card pending" id="ardmMilestone">
+        <div class="milestone-icon"><i class="fas fa-arrow-up-right-dots"></i></div>
+        <div>
+          <div class="milestone-label">ARDM Promotion</div>
+          <div class="milestone-status" id="ardmMilestoneStatus">Criteria Not Yet Met</div>
+        </div>
+      </div>
+      <div class="milestone-card pending" id="ceoMilestone">
+        <div class="milestone-icon"><i class="fas fa-trophy"></i></div>
+        <div>
+          <div class="milestone-label">CEO Council</div>
+          <div class="milestone-status" id="ceoMilestoneStatus">Option 2 Not Yet Met</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-tile" id="qs_cash_tile"><div class="stat-val" id="qs_cash">₹0</div><div class="stat-lbl">Cash Rewards</div></div>
+      <div class="stat-tile" id="qs_trip_tile"><div class="stat-val" id="qs_trip">₹0</div><div class="stat-lbl">Trip Value</div></div>
+      <div class="stat-tile" id="qs_incentives_tile"><div class="stat-val" id="qs_incentives">₹0</div><div class="stat-lbl">L1 Incentives</div></div>
+    </div>
+
+    <!-- WCP COMPOSITION -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-icon"><i class="fas fa-layer-group"></i></div>
+        <div class="card-hd-title">WCP Composition</div>
+      </div>
+      <div class="card-body" id="wcpCompositionBody"></div>
+    </div>
+
+    <!-- BREAKDOWN (collapsible) -->
+    <div class="card">
+      <div class="card-hd collapsible-hd" id="breakdownHd" onclick="toggleBreakdown()" role="button" tabindex="0" aria-expanded="false" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleBreakdown();}">
+        <div class="card-hd-icon"><i class="fas fa-receipt"></i></div>
+        <div class="card-hd-title">Payout Breakdown</div>
+        <i class="fas fa-chevron-down breakdown-chevron" id="breakdownChevron"></i>
+      </div>
+      <div class="breakdown-wrap" id="breakdownWrap">
+        <div class="breakdown-inner" id="breakdownBody"></div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-icon"><i class="fas fa-chart-pie"></i></div>
+        <div class="card-hd-title">Earnings Mix</div>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- STATUS TABLE -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-icon"><i class="fas fa-table"></i></div>
+        <div class="card-hd-title">CEO Council &amp; ARDM Status</div>
+        <span class="card-hd-sub">Rolling 12 months</span>
+      </div>
+      <div class="card-body">
+        <div style="overflow-x:auto;">
+          <table class="mix-tbl">
+            <thead><tr><th>Criteria</th><th>Required</th><th>Current</th><th>Status</th></tr></thead>
+            <tbody id="statusTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div class="section-lbl">Insights</div>
+    <div class="insight-row">
+      <div class="insight-box hidden" id="ins_slab"><div class="insight-title">Next Slab Opportunity</div><div class="insight-text" id="ins_slab_text"></div></div>
+      <div class="insight-box hidden" id="ins_init"><div class="insight-title">Initiative Shortfall</div><div class="insight-text" id="ins_init_text"></div></div>
+      <div class="insight-box hidden" id="ins_ceo"><div class="insight-title">CEO Council</div><div class="insight-text" id="ins_ceo_text"></div></div>
+      <div class="insight-box hidden" id="ins_ardm"><div class="insight-title">ARDM Promotion</div><div class="insight-text" id="ins_ardm_text"></div></div>
+    </div>
+
+  </div><!-- /results -->
+</div>
+
+<script>
+const SLABS = {
+  15: { thresholds:[125000,200000,250000,350000,500000,650000,800000], label:'Contest till 15th Sep' },
+  30: { thresholds:[150000,250000,350000,500000,750000,1000000,1200000], label:'Contest till 30th Sep' }
+};
+const CASH_REWARD = [10000,25000,35000,0,20000,0,25000];
+const TRIP_TYPE   = [null,null,null,'Cordelia','Cordelia','Bali','Bali'];
+const TRIP_ENCASH_VALUE = { Cordelia:45000, Bali:80000 };
+const TOP_SLAB_THRESHOLD = 1200000;
+const TOP_SLAB_CASH = 25000;
+const BEYOND_12L_STEP = 200000;
+const BEYOND_12L_REWARD = 25000;
+const TOPL1_REWARD = {0:0,1:7500,2:15000,3:30000};
+const CEO_PRAGUE_OPTION2 = 8500000;
+const CEO_CABINET_OPTION2 = 10000000;
+
+let currentPeriod = 15;
+let topL1Inc = 0;
+let lastCalc = null;
+let chartInst = null;
+let annualWCPTouched = false;
+let annualL1Touched = false;
+
+const fmtRs = v => '₹'+Math.round(v).toLocaleString('en-IN');
+const fmtL  = v => '₹'+(v/100000).toFixed(2)+'L';
+
+document.getElementById('periodToggle').addEventListener('click',(e)=>{
+  if(e.target.tagName!=='BUTTON')return;
+  document.querySelectorAll('#periodToggle .seg-btn').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentPeriod=parseInt(e.target.dataset.period);
+  calculate();
+});
+
+document.getElementById('topL1Toggle').addEventListener('click',(e)=>{
+  if(e.target.tagName!=='BUTTON')return;
+  setTopL1(e.target.dataset.val);
+  calculate();
+});
+
+function setTopL1(val){
+  topL1Inc = parseInt(val);
+  document.querySelectorAll('#topL1Toggle .seg-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===String(val)));
+}
+
+function stepValue(id, delta, min){
+  const el = document.getElementById(id);
+  let v = (parseFloat(el.value)||0) + delta;
+  if(min !== undefined && v < min) v = min;
+  el.value = v;
+  if(id==='annualWCP') annualWCPTouched = true;
+  if(id==='annualL1') annualL1Touched = true;
+  calculate();
+}
+
+function openModal(){ document.getElementById('modal').classList.add('active'); document.body.style.overflow='hidden'; }
+function closeModal(){ document.getElementById('modal').classList.remove('active'); document.body.style.overflow=''; }
+document.getElementById('modal').addEventListener('click',function(e){ if(e.target===this)closeModal(); });
+
+function toggleBreakdown(){
+  const wrap = document.getElementById('breakdownWrap');
+  const chevron = document.getElementById('breakdownChevron');
+  const hd = document.getElementById('breakdownHd');
+  const nowOpen = wrap.classList.toggle('open');
+  chevron.classList.toggle('open', nowOpen);
+  hd.setAttribute('aria-expanded', String(nowOpen));
+}
+
+function findSlab(wcp,thresholds){
+  let idx=-1;
+  for(let i=0;i<thresholds.length;i++) if(wcp>=thresholds[i]) idx=i;
+  return idx;
+}
+
+function setWarn(boxId, msgId, active, message){
+  const box = document.getElementById(boxId).closest('.input-box');
+  const msg = document.getElementById(msgId);
+  if(active){
+    box.classList.add('warn');
+    msg.querySelector('span').textContent = message;
+    msg.classList.remove('hidden');
+  } else {
+    box.classList.remove('warn');
+    msg.classList.add('hidden');
+  }
+}
+
+function validateInputs(totalWCP, annualWCP, annualL1, currentQualityL1Count){
+  setWarn('annualWCP','annualValidationMsg', annualWCP<totalWCP,
+    `Rolling 12-month business figure (${fmtRs(annualWCP)}) must be at least this period's WCP (${fmtRs(totalWCP)}). The Calculate button is disabled until this is fixed.`);
+
+  setWarn('annualL1','annualL1ValidationMsg', annualL1<currentQualityL1Count,
+    `Quality L1s recruited over the rolling 12 months (${annualL1}) must be at least the quality L1s created this month (${currentQualityL1Count}). The Calculate button is disabled until this is fixed.`);
+}
+
+function calculate(){
+  const l1Active          = parseFloat(document.getElementById('l1Active').value)||0;
+  const avgL1WCP          = parseFloat(document.getElementById('avgL1WCP').value)||0;
+  const recruitedL1Count  = parseFloat(document.getElementById('recruitedL1Count').value)||0;
+  const avgRecruitedL1WCP = parseFloat(document.getElementById('avgRecruitedL1WCP').value)||0;
+  const encash             = document.getElementById('encashTrip').checked;
+
+  const existingL1WCP  = l1Active * avgL1WCP;
+  const recruitedL1WCP = recruitedL1Count * avgRecruitedL1WCP;
+  const totalWCP = existingL1WCP + recruitedL1WCP;
+
+  // Rolling 12-month annual figures must be at least this period's contribution.
+  const minAnnualWCP = totalWCP;
+  const currentQualityL1Count = avgRecruitedL1WCP >= 200000 ? recruitedL1Count : 0;
+  const minAnnualL1  = currentQualityL1Count;
+  if(!annualWCPTouched) document.getElementById('annualWCP').value = minAnnualWCP;
+  if(!annualL1Touched)  document.getElementById('annualL1').value  = minAnnualL1;
+
+  const annualWCP = parseFloat(document.getElementById('annualWCP').value)||0;
+  const annualL1  = parseFloat(document.getElementById('annualL1').value)||0;
+  const isValid = (annualWCP >= minAnnualWCP - 0.001) && (annualL1 >= minAnnualL1);
+
+  document.getElementById('l1Contribution').innerHTML =
+    `Adds <strong>${fmtRs(existingL1WCP)}</strong> to WCP`;
+  document.getElementById('recruitedContribution').innerHTML =
+    `Adds <strong>${fmtRs(recruitedL1WCP)}</strong> to WCP`;
+
+  document.getElementById('totalWcpDisplay').textContent = fmtRs(totalWCP);
+  document.getElementById('avgL1WCPHint').innerHTML = `= <strong>${fmtL(avgL1WCP)}</strong> per L1`;
+  document.getElementById('avgRecruitedL1WCPHint').innerHTML = `= <strong>${fmtL(avgRecruitedL1WCP)}</strong> per L1`;
+  document.getElementById('annualWCPHint').innerHTML = `= <strong>${fmtL(annualWCP)}</strong>${!annualWCPTouched?' (auto-set to this period\'s minimum)':''}`;
+
+  validateInputs(totalWCP, annualWCP, annualL1, currentQualityL1Count);
+
+  const slabSet = SLABS[currentPeriod];
+  const slabIdx = findSlab(totalWCP, slabSet.thresholds);
+  const topSlabReached = totalWCP >= TOP_SLAB_THRESHOLD;
+  const lineItems = [];
+  let cashComponents = 0, tripType = null, slabCash = 0;
+  let displaySlabNo = slabIdx>=0 ? slabIdx+1 : null;
+
+  if(topSlabReached){
+    displaySlabNo = 9;
+    slabCash = TOP_SLAB_CASH;
+    tripType = 'Bali';
+    cashComponents += slabCash;
+    lineItems.push({
+      desc:`Slab 9 reached - ₹12L+ top slab`,
+      formula:`WCP ${fmtRs(totalWCP)} ≥ ₹12,00,000 · Bali 2N/3D`,
+      amt: slabCash, dot:'#7b0d0d'
+    });
+  } else if(slabIdx===-1){
+    lineItems.push({desc:`No slab reached`, formula:`WCP ${fmtRs(totalWCP)} < Slab 1 (${fmtRs(slabSet.thresholds[0])})`, amt:0, dot:'#ccc'});
+  } else {
+    slabCash = CASH_REWARD[slabIdx];
+    tripType = TRIP_TYPE[slabIdx];
+    cashComponents += slabCash;
+    lineItems.push({
+      desc:`Slab ${slabIdx+1} reached - ${slabSet.label}`,
+      formula:`WCP ${fmtRs(totalWCP)} ≥ threshold ${fmtRs(slabSet.thresholds[slabIdx])}${tripType?` · ${tripType} trip`:''}`,
+      amt: slabCash, dot: slabCash>0?'#7b0d0d':'#ccc'
+    });
+  }
+
+  // Once ₹12L is reached, ₹25K is already paid through Slab 9 above.
+  // Every COMPLETE ₹2L beyond ₹12L adds another ₹25K.
+  let beyondReward=0, beyondUnits=0;
+  if(totalWCP>TOP_SLAB_THRESHOLD){
+    beyondUnits=Math.floor((totalWCP-TOP_SLAB_THRESHOLD)/BEYOND_12L_STEP);
+    beyondReward=beyondUnits*BEYOND_12L_REWARD;
+  }
+  if(beyondUnits>0){
+    lineItems.push({desc:'Beyond ₹12L WCP bonus', formula:`floor((${fmtRs(totalWCP)} − ₹12,00,000)/₹2,00,000) = ${beyondUnits} × ₹25,000`, amt:beyondReward, dot:'#a83232'});
+    cashComponents+=beyondReward;
+  }
+
+  // September initiative: existing active L1s and newly recruited L1s are counted together.
+  const qualifyingL1Count = l1Active + recruitedL1Count;
+  const penalty = qualifyingL1Count < 2;
+  let cashAfterPenalty = cashComponents;
+  if(penalty && cashComponents>0){
+    cashAfterPenalty = cashComponents*0.5;
+    lineItems.push({desc:'Initiative shortfall - fewer than 2 active L1s', formula:`Cash reward reduced 50%: ${fmtRs(cashComponents)} → ${fmtRs(cashAfterPenalty)}`, amt:-(cashComponents-cashAfterPenalty), dot:'#7b0d0d', neg:true});
+  }
+
+  const tripEarned = !!tripType;
+  const copay = (penalty && tripEarned) ? 10000 : 0;
+  let tripValue=0;
+  if(tripEarned){
+    const encashBase = TRIP_ENCASH_VALUE[tripType] || 0;
+    if(encash){
+      tripValue = Math.max(0, encashBase-copay);
+      lineItems.push({
+        desc: copay>0?`${tripType} trip encashed (less co-pay)`:`${tripType} trip encashed`,
+        formula: copay>0?`${fmtRs(encashBase)} - ₹10,000 co-pay`:`Flat ${tripType} encashment rate`,
+        amt:tripValue, dot:'#888'
+      });
+    } else {
+      lineItems.push({
+        desc:`${tripType} trip - physical travel`,
+        formula: copay>0?'Not encashed - ₹10,000 co-pay payable due to initiative shortfall':'Not encashed - no cash value added',
+        amt:0, dot:'#ccc'
+      });
+    }
+  }
+
+  const totalCash = cashAfterPenalty+tripValue;
+
+  // Quality New L1 incentive: ₹2,500 at ₹2L M0 WCP; ₹6,000 on Cordelia qualification.
+  const tier2Threshold = currentPeriod===15?350000:500000;
+  let qualityReward=0;
+  const qualityLines=[];
+  if(recruitedL1Count>0 && avgRecruitedL1WCP>=200000){
+    if(avgRecruitedL1WCP>=tier2Threshold){
+      const amt=recruitedL1Count*6000;
+      qualityReward+=amt;
+      qualityLines.push({desc:`${recruitedL1Count} new L1(s) achieve Cordelia qualification`, formula:`≥ ${fmtRs(tier2Threshold)} avg · ${recruitedL1Count} × ₹6,000`, amt:amt, dot:'#a83232'});
+    } else {
+      const amt=recruitedL1Count*2500;
+      qualityReward+=amt;
+      qualityLines.push({desc:`${recruitedL1Count} new L1(s) ≥ ₹2L WCP each`, formula:`${recruitedL1Count} × ₹2,500`, amt:amt, dot:'#7b0d0d'});
+    }
+  }
+
+  const topL1Reward = TOPL1_REWARD[topL1Inc];
+  const grandTotal = totalCash+qualityReward+topL1Reward;
+
+  let ceoStatus='none', ceoShortfall=0;
+  if(annualWCP>=CEO_CABINET_OPTION2) ceoStatus='both';
+  else if(annualWCP>=CEO_PRAGUE_OPTION2) ceoStatus='prague';
+  else ceoShortfall=CEO_PRAGUE_OPTION2-annualWCP;
+
+  const ardmWCPmet = annualWCP>=1200000;
+  const ardmL1met  = annualL1>=3;
+  const ardmQualified = ardmWCPmet && ardmL1met;
+
+  lastCalc = {
+    totalWCP, slabIdx, slabSet, displaySlabNo, topSlabReached, lineItems, slabCash, cashComponents, cashAfterPenalty, penalty, copay,
+    tripEarned, tripType, encash, tripValue, totalCash, qualityReward, qualityLines, topL1Reward, grandTotal,
+    ceoStatus, ceoShortfall, annualWCP, ardmWCPmet, ardmL1met, ardmQualified, annualL1,
+    beyondReward, beyondUnits, isValid, minAnnualWCP, minAnnualL1, qualifyingL1Count,
+    l1Active, avgL1WCP, existingL1WCP,
+    recruitedL1Count, avgRecruitedL1WCP, recruitedL1WCP
+  };
+
+  // header KPIs
+  document.getElementById('hdrWcp').textContent = fmtL(totalWCP);
+  document.getElementById('hdrSlab').textContent = displaySlabNo ? ('Slab '+displaySlabNo) : 'None';
+  document.getElementById('hdrTrip').textContent = tripEarned ? `${tripType}${encash?' Encash':' Trip'}` : 'No';
+  document.getElementById('hdrPayout').textContent = isValid ? fmtL(grandTotal) : '—';
+
+  updateResults();
+}
+
+function updateResults(){
+  const d=lastCalc;
+  const btn = document.getElementById('calcBtn');
+  btn.disabled = !d.isValid;
+
+  if(!d.isValid){
+    document.getElementById('finalReward').textContent = '—';
+    document.getElementById('rewardSub').textContent = 'Fix the annual rolling figures above (they must be at least this period\'s WCP and L1s) to calculate the payout';
+    document.getElementById('slabLabel').textContent = d.displaySlabNo ? `Slab ${d.displaySlabNo}` : 'No slab reached';
+    document.getElementById('initLabel').textContent = 'Initiative: pending';
+    ['qs_cash','qs_trip','qs_incentives'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('qs_cash_tile').classList.add('subdued');
+    document.getElementById('qs_trip_tile').classList.add('subdued');
+    document.getElementById('qs_incentives_tile').classList.add('subdued');
+    document.getElementById('breakdownBody').innerHTML = `<div class="insight-text" style="padding:4px 0;">Fix the annual rolling figures to see the payout breakdown.</div>`;
+    if(chartInst){chartInst.destroy();chartInst=null;}
+    document.querySelectorAll('.insight-box').forEach(b=>b.classList.add('hidden'));
+    buildWcpComposition(d);
+    buildStatusTable(d);
+    return;
+  }
+
+  document.getElementById('finalReward').textContent=fmtRs(d.grandTotal);
+  document.getElementById('rewardSub').textContent='Cash reward + trip encashment + L1 incentives';
+  document.getElementById('slabLabel').textContent = d.displaySlabNo ? `Slab ${d.displaySlabNo}` : 'No slab reached';
+  document.getElementById('initLabel').textContent = d.penalty ? 'Initiative: shortfall (−50%)' : 'Initiative: met';
+
+  // Career milestones — highlighted separately from the payout figures
+  const ardmCard = document.getElementById('ardmMilestone');
+  const ardmStatusEl = document.getElementById('ardmMilestoneStatus');
+  if(d.ardmQualified){
+    ardmStatusEl.textContent = 'WCP + Quality L1 Criteria Met';
+    ardmCard.classList.add('qualified');
+  } else {
+    ardmStatusEl.textContent = 'Criteria Not Yet Met';
+    ardmCard.classList.remove('qualified');
+  }
+
+  const ceoCard = document.getElementById('ceoMilestone');
+  const ceoStatusEl = document.getElementById('ceoMilestoneStatus');
+  if(d.ceoStatus==='both'){
+    ceoStatusEl.textContent = 'Prague + Amsterdam - Option 2';
+    ceoCard.classList.add('qualified');
+  } else if(d.ceoStatus==='prague'){
+    ceoStatusEl.textContent = 'Prague - Option 2';
+    ceoCard.classList.add('qualified');
+  } else {
+    ceoStatusEl.textContent = 'Option 2 Not Yet Met';
+    ceoCard.classList.remove('qualified');
+  }
+
+  // Quick stats — 3 headline numbers, MECE with the grand total (cash + trip + incentives = grand total)
+  const qsCash = d.cashAfterPenalty;
+  const qsTrip = d.tripValue;
+  const qsIncentives = d.qualityReward + d.topL1Reward;
+  document.getElementById('qs_cash').textContent = fmtRs(qsCash);
+  document.getElementById('qs_trip').textContent = fmtRs(qsTrip);
+  document.getElementById('qs_incentives').textContent = fmtRs(qsIncentives);
+  document.getElementById('qs_cash_tile').classList.toggle('subdued', qsCash===0);
+  document.getElementById('qs_trip_tile').classList.toggle('subdued', qsTrip===0);
+  document.getElementById('qs_incentives_tile').classList.toggle('subdued', qsIncentives===0);
+
+  // breakdown
+  let html='';
+  d.lineItems.forEach(li=>{
+    html+=`<div class="breakdown-row">
+      <div class="bd-label"><span class="bd-dot" style="background:${li.dot}"></span><div class="bd-main"><span>${li.desc}</span><span class="bd-formula">${li.formula}</span></div></div>
+      <div class="bd-amount ${li.neg?'neg':''}">${(li.amt<0?'-':'')+fmtRs(Math.abs(li.amt))}</div>
+    </div>`;
+  });
+  d.qualityLines.forEach(li=>{
+    html+=`<div class="breakdown-row">
+      <div class="bd-label"><span class="bd-dot" style="background:${li.dot}"></span><div class="bd-main"><span>Quality L1 - ${li.desc}</span><span class="bd-formula">${li.formula}</span></div></div>
+      <div class="bd-amount">${fmtRs(li.amt)}</div>
+    </div>`;
+  });
+  if(d.topL1Reward>0){
+    html+=`<div class="breakdown-row">
+      <div class="bd-label"><span class="bd-dot" style="background:#888"></span><div class="bd-main"><span>Quarterly Top L1 increase bonus</span></div></div>
+      <div class="bd-amount">${fmtRs(d.topL1Reward)}</div>
+    </div>`;
+  }
+  html+=`<div class="bd-total"><span class="bd-total-label">Total Payout</span><span class="bd-total-val">${fmtRs(d.grandTotal)}</span></div>`;
+  document.getElementById('breakdownBody').innerHTML=html;
+
+  buildWcpComposition(d);
+  renderChart(d);
+  buildStatusTable(d);
+  buildInsights(d);
+}
+
+function buildWcpComposition(d){
+  const rows=[
+    { label:'Existing L1 Team', formula:`${d.l1Active} L1(s) × ${fmtRs(d.avgL1WCP)} avg`, amt:d.existingL1WCP, dot:'#9e1515' },
+    { label:'Recruited L1s', formula:`${d.recruitedL1Count} L1(s) × ${fmtRs(d.avgRecruitedL1WCP)} avg`, amt:d.recruitedL1WCP, dot:'#c96060' }
+  ];
+  let html='';
+  rows.forEach(r=>{
+    html+=`<div class="breakdown-row">
+      <div class="bd-label"><span class="bd-dot" style="background:${r.dot}"></span><div class="bd-main"><span>${r.label}</span><span class="bd-formula">${r.formula}</span></div></div>
+      <div class="bd-amount">${fmtRs(r.amt)}</div>
+    </div>`;
+  });
+  html+=`<div class="bd-total"><span class="bd-total-label">Total WCP</span><span class="bd-total-val">${fmtRs(d.totalWCP)}</span></div>`;
+  document.getElementById('wcpCompositionBody').innerHTML=html;
+}
+
+function renderChart(d){
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  const labels=[], vals=[], colors=[];
+  const push=(l,v,c)=>{ if(v>0){labels.push(l);vals.push(parseFloat(v.toFixed(2)));colors.push(c);} };
+  push('Slab Cash Reward', d.slabCash*(d.penalty?0.5:1), '#7b0d0d');
+  push('Beyond-12L Bonus', d.beyondReward*(d.penalty?0.5:1), '#a83232');
+  push('Trip Encashment', d.tripValue, '#c96060');
+  push('Quality L1 Incentive', d.qualityReward, '#888888');
+  push('Quarterly Top L1 Bonus', d.topL1Reward, '#cccccc');
+  if(vals.length===0) return;
+  chartInst=new Chart(ctx,{
+    type:'doughnut',
+    data:{ labels, datasets:[{data:vals, backgroundColor:colors, borderColor:'#fff', borderWidth:3, hoverOffset:6}] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{position:'right', labels:{font:{size:11}, color:'#555', padding:10, boxWidth:11}},
+        tooltip:{callbacks:{label:(c)=>` ${c.label}: ${fmtRs(c.raw)}`}}
+      }
+    }
+  });
+}
+
+function buildStatusTable(d){
+  const rows=[
+    { label:'CEO Council - Prague (Option 2)', required:'₹85,00,000 WRP', current: fmtRs(d.annualWCP), met: d.annualWCP>=CEO_PRAGUE_OPTION2 },
+    { label:'CEO Council - Prague + Amsterdam (Option 2)', required:'₹1,00,00,000 WRP', current: fmtRs(d.annualWCP), met: d.annualWCP>=CEO_CABINET_OPTION2 },
+    { label:'ARDM - ₹12L WCP', required:'₹12,00,000', current: fmtRs(d.annualWCP), met: d.ardmWCPmet },
+    { label:'ARDM - 3 Quality L1s recruited', required:'3', current: String(d.annualL1), met: d.ardmL1met }
+  ];
+  let html='';
+  rows.forEach(r=>{
+    html+=`<tr><td>${r.label}</td><td>${r.required}</td><td>${r.current}</td><td><span class="status-chip ${r.met?'ok':'no'}">${r.met?'MET':'NOT MET'}</span></td></tr>`;
+  });
+  document.getElementById('statusTableBody').innerHTML=html;
+}
+
+function buildInsights(d){
+  // Next slab / ₹12L+ progression
+  const slabBox=document.getElementById('ins_slab'), slabText=document.getElementById('ins_slab_text');
+  if(d.topSlabReached){
+    const nextBonusThreshold = TOP_SLAB_THRESHOLD + (d.beyondUnits+1)*BEYOND_12L_STEP;
+    const gap = nextBonusThreshold-d.totalWCP;
+    slabText.innerHTML=`Adding <strong>${fmtRs(gap)}</strong> more WCP reaches ${fmtRs(nextBonusThreshold)} and unlocks the next <strong>₹25,000</strong> beyond-₹12L bonus.`;
+    slabBox.classList.remove('hidden'); slabBox.classList.remove('ok','warn');
+  } else if(d.slabIdx<6){
+    const nextThreshold=d.slabSet.thresholds[d.slabIdx+1];
+    const gap=nextThreshold-d.totalWCP;
+    const nextCash=CASH_REWARD[d.slabIdx+1], nextTrip=TRIP_TYPE[d.slabIdx+1];
+    const nextSlabNo = nextThreshold>=TOP_SLAB_THRESHOLD ? 9 : d.slabIdx+2;
+    slabText.innerHTML=`Adding <strong>${fmtRs(gap)}</strong> more WCP reaches Slab ${nextSlabNo} (${fmtRs(nextThreshold)}), unlocking ${nextCash>0?`<strong>${fmtRs(nextCash)}</strong> cash`:''}${nextCash>0&&nextTrip?' + ':''}${nextTrip?`<strong>${nextTrip} trip</strong>`:''}.`;
+    slabBox.classList.remove('hidden'); slabBox.classList.remove('ok','warn');
+  } else if(d.totalWCP<TOP_SLAB_THRESHOLD){
+    const gap=TOP_SLAB_THRESHOLD-d.totalWCP;
+    slabText.innerHTML=`Adding <strong>${fmtRs(gap)}</strong> more WCP reaches the <strong>₹12L top slab</strong>. From there, every complete ₹2L beyond ₹12L adds another <strong>₹25,000</strong>.`;
+    slabBox.classList.remove('hidden'); slabBox.classList.remove('ok','warn');
+  } else { slabBox.classList.add('hidden'); }
+
+  // Initiative
+  const initBox=document.getElementById('ins_init'), initText=document.getElementById('ins_init_text');
+  if(d.penalty){
+    initText.innerHTML=`Only <strong>${d.qualifyingL1Count} L1${d.qualifyingL1Count==1?' is':'s are'} counted as active</strong> in September (Existing Active + Recruited) - below the minimum of 2. This halved the cash payout${d.tripEarned?' and added a ₹10,000 trip co-pay':''}.`;
+    initBox.classList.remove('hidden'); initBox.classList.add('warn'); initBox.classList.remove('ok');
+  } else { initBox.classList.add('hidden'); }
+
+  // CEO council
+  const ceoBox=document.getElementById('ins_ceo'), ceoText=document.getElementById('ins_ceo_text');
+  if(d.ceoStatus==='both'){
+    ceoText.innerHTML=`CEO Council Option 2 for <strong>Prague + Amsterdam</strong> is met at ${fmtRs(d.annualWCP)} rolling business.`;
+    ceoBox.classList.remove('hidden'); ceoBox.classList.add('ok'); ceoBox.classList.remove('warn');
+  } else if(d.ceoStatus==='prague'){
+    ceoText.innerHTML=`CEO Council Option 2 for <strong>Prague</strong> is met. Add <strong>${fmtRs(CEO_CABINET_OPTION2-d.annualWCP)}</strong> more rolling business to meet the ₹100L Prague + Amsterdam Option 2 gate.`;
+    ceoBox.classList.remove('hidden'); ceoBox.classList.add('ok'); ceoBox.classList.remove('warn');
+  } else {
+    ceoText.innerHTML=`Shortfall of <strong>${fmtRs(d.ceoShortfall)}</strong> to reach the ₹85L WRP Prague Option 2 gate.`;
+    ceoBox.classList.remove('hidden'); ceoBox.classList.add('warn'); ceoBox.classList.remove('ok');
+  }
+
+  // ARDM
+  const ardmBox=document.getElementById('ins_ardm'), ardmText=document.getElementById('ins_ardm_text');
+  if(d.ardmQualified){
+    ardmText.innerHTML=`The existing calculator's <strong>ARDM business criteria are met</strong> - ₹12L WCP and 3 Quality L1 recruitments.`;
+    ardmBox.classList.remove('hidden'); ardmBox.classList.add('ok'); ardmBox.classList.remove('warn');
+  } else {
+    let parts=[];
+    if(!d.ardmWCPmet) parts.push(`<strong>${fmtRs(1200000-d.annualWCP)}</strong> more WCP`);
+    if(!d.ardmL1met) parts.push(`<strong>${3-d.annualL1}</strong> more Quality L1${(3-d.annualL1)>1?'s':''} recruited`);
+    ardmText.innerHTML=`Needs ${parts.join(' and ')} to meet the ARDM business criteria.`;
+    ardmBox.classList.remove('hidden'); ardmBox.classList.add('warn'); ardmBox.classList.remove('ok');
+  }
+}
+
+function handleCalculate(){
+  if(!lastCalc || !lastCalc.isValid) return;
+  const btn=document.getElementById('calcBtn'), dots=document.getElementById('ldots');
+  dots.classList.remove('hidden'); btn.style.opacity='0.8';
+  calculate();
+  setTimeout(()=>{
+    dots.classList.add('hidden'); btn.style.opacity='';
+    const hero=document.querySelector('.reward-hero');
+    hero.classList.remove('pulse-update'); void hero.offsetWidth; hero.classList.add('pulse-update');
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+  },400);
+}
+
+function clearAll(){
+  document.getElementById('l1Active').value=0;
+  document.getElementById('avgL1WCP').value=0;
+  document.getElementById('recruitedL1Count').value=0;
+  document.getElementById('avgRecruitedL1WCP').value=0;
+  document.getElementById('encashTrip').checked=true;
+  setTopL1('0');
+  annualWCPTouched = false;
+  annualL1Touched = false;
+  document.getElementById('annualWCP').value=0;
+  document.getElementById('annualL1').value=0;
+  document.querySelectorAll('#periodToggle .seg-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#periodToggle .seg-btn[data-period="15"]').classList.add('active');
+  currentPeriod=15;
+  calculate();
+}
+
+function setField(id,val){ document.getElementById(id).value = val; }
+
+function loadScenario(key){
+  const sc = {
+    solo:      { l1Active:2, avgL1WCP:175000, recruitedL1Count:0, avgRecruitedL1WCP:0,       period:15, encash:true,  topL1:'0', annualWCP:350000,   annualL1:0 },
+    single_l1: { l1Active:1, avgL1WCP:0,      recruitedL1Count:1, avgRecruitedL1WCP:1500000, period:15, encash:true,  topL1:'0', annualWCP:1500000,  annualL1:1 },
+    two_l1:    { l1Active:2, avgL1WCP:400000, recruitedL1Count:0, avgRecruitedL1WCP:0,       period:15, encash:true,  topL1:'1', annualWCP:8000000,  annualL1:0 },
+    power:     { l1Active:3, avgL1WCP:1300000,recruitedL1Count:1, avgRecruitedL1WCP:1000000, period:30, encash:false, topL1:'3', annualWCP:10000000, annualL1:4 }
+  };
+  const s=sc[key]; if(!s) return;
+  setField('l1Active', s.l1Active);
+  setField('avgL1WCP', s.avgL1WCP);
+  setField('recruitedL1Count', s.recruitedL1Count);
+  setField('avgRecruitedL1WCP', s.avgRecruitedL1WCP);
+  document.getElementById('encashTrip').checked = s.encash;
+  setTopL1(s.topL1);
+  annualWCPTouched = true;
+  annualL1Touched = true;
+  setField('annualWCP', s.annualWCP);
+  setField('annualL1', s.annualL1);
+
+  document.querySelectorAll('#periodToggle .seg-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`#periodToggle .seg-btn[data-period="${s.period}"]`).classList.add('active');
+  currentPeriod = s.period;
+
+  handleCalculate();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  ['l1Active','avgL1WCP','recruitedL1Count','avgRecruitedL1WCP'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', calculate);
+  });
+  document.getElementById('annualWCP').addEventListener('input', ()=>{ annualWCPTouched = true; calculate(); });
+  document.getElementById('annualL1').addEventListener('input', ()=>{ annualL1Touched = true; calculate(); });
+  document.getElementById('encashTrip').addEventListener('change', calculate);
+  calculate();
+  document.getElementById('results').classList.add('first-reveal');
+});
+</script>
+</body>
+</html>
