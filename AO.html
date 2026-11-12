@@ -323,7 +323,7 @@ select:focus, input:focus { color: var(--maroon); }
       <div class="modal-section-lbl">WCP Ask Slabs</div>
       <div style="overflow-x:auto;">
         <table class="rate-tbl">
-          <thead><tr><th>Slab</th><th>Contest till 15 Sep</th><th>Contest till 30 Sep</th><th>Cash</th><th>Trip</th></tr></thead>
+          <thead><tr><th>Slab</th><th>Contest till 15 Nov</th><th>Contest till 30 Nov</th><th>Cash</th><th>Trip</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>₹1.25L</td><td>₹1.5L</td><td class="hl">₹10,000</td><td>None</td></tr>
             <tr><td>2</td><td>₹2.0L</td><td>₹2.5L</td><td class="hl">₹25,000</td><td>None</td></tr>
@@ -338,12 +338,12 @@ select:focus, input:focus { color: var(--maroon); }
       </div>
 
       <div class="modal-section-lbl">Initiative Rules</div>
-      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-users"></i></div><div class="assump-text">Minimum <span class="mark">2 L1 Active in Sep 2026</span> required. For this count, <span class="mark">Existing Active L1s + Recruited L1s</span> are considered together - else cash payout is reduced by <span class="mark">50%</span> and trips carry an additional <span class="mark">₹10,000 co-pay</span>.</div></div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-users"></i></div><div class="assump-text">Minimum <span class="mark">2 L1 Active in Nov 2026</span> required. For this count, <span class="mark">Existing Active L1s + Recruited L1s</span> are considered together - else cash payout is reduced by <span class="mark">50%</span> and trips carry an additional <span class="mark">₹10,000 co-pay</span>.</div></div>
       <div class="assumption-row"><div class="assump-icon"><i class="fas fa-layer-group"></i></div><div class="assump-text">At <span class="mark">₹12L</span> total WCP, the top slab pays <span class="mark">₹25,000</span>. Every complete <span class="mark">₹2L beyond ₹12L</span> adds another <span class="mark">₹25,000</span> (e.g. ₹15L = ₹25,000 + ₹25,000).</div></div>
       <div class="assumption-row"><div class="assump-icon"><i class="fas fa-plane"></i></div><div class="assump-text">Trip encashment rates: <span class="mark">Cordelia ₹45,000</span> and <span class="mark">Bali ₹80,000</span>.</div></div>
 
       <div class="modal-section-lbl">Quality New L1 Recruitment</div>
-      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-user-check"></i></div><div class="assump-text">For each <span class="mark">newly recruited</span> L1 with ≥ ₹2L WCP in M0 → <span class="mark">₹2,500</span> per L1. If the L1 achieves <span class="mark">Cordelia qualification</span> (₹3.5L till 15 Sep / ₹5L till 30 Sep) → <span class="mark">₹6,000</span> per L1.</div></div>
+      <div class="assumption-row"><div class="assump-icon"><i class="fas fa-user-check"></i></div><div class="assump-text">For each <span class="mark">newly recruited</span> L1 with ≥ ₹2L WCP in M0 → <span class="mark">₹2,500</span> per L1. If the L1 achieves <span class="mark">Cordelia qualification</span> (₹3.5L till 15 Nov / ₹5L till 30 Nov) → <span class="mark">₹6,000</span> per L1.</div></div>
 
       <div class="modal-section-lbl">Quarterly Top L1 Increase</div>
       <table class="rate-tbl">
@@ -394,8 +394,8 @@ select:focus, input:focus { color: var(--maroon); }
   <div class="card">
     <div class="card-body">
       <div class="seg-toggle" id="periodToggle">
-        <button class="seg-btn active" data-period="15">Contest till 15th Sep</button>
-        <button class="seg-btn" data-period="30">Contest till 30th Sep</button>
+        <button class="seg-btn active" data-period="15">Contest till 15th Nov</button>
+        <button class="seg-btn" data-period="30">Contest till 30th Nov</button>
       </div>
     </div>
   </div>
@@ -408,7 +408,7 @@ select:focus, input:focus { color: var(--maroon); }
     <div class="card-hd">
       <div class="card-hd-icon"><i class="fas fa-users"></i></div>
       <div class="card-hd-title">1. Existing L1 Team</div>
-      <span class="info-tip" tabindex="0" aria-label="L1 = your first-line downline agents (Executive/Insurance Manager). For the September initiative, Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay."><i class="fas fa-circle-info"></i><span class="info-tip-bubble">Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay.</span></span>
+      <span class="info-tip" tabindex="0" aria-label="L1 = your first-line downline agents (Executive/Insurance Manager). For the November initiative, Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay."><i class="fas fa-circle-info"></i><span class="info-tip-bubble">Existing Active L1s + Recruited L1s are counted together. Minimum 2 in total are required to avoid the 50% cash reduction and ₹10,000 trip co-pay.</span></span>
     </div>
     <div class="card-body">
       <div class="two-col">
@@ -542,8 +542,8 @@ select:focus, input:focus { color: var(--maroon); }
     </div>
     <div class="card-body">
       <div class="scenario-grid">
-        <button class="scenario-btn" onclick="loadScenario('solo')">Cordelia Example <span>2 L1s, ₹3.5L WCP, till 15 Sep</span></button>
-        <button class="scenario-btn" onclick="loadScenario('single_l1')">Single L1 Recruiter <span>1 L1, ₹15L WCP, till 15 Sep</span></button>
+        <button class="scenario-btn" onclick="loadScenario('solo')">Cordelia Example <span>2 L1s, ₹3.5L WCP, till 15 Nov</span></button>
+        <button class="scenario-btn" onclick="loadScenario('single_l1')">Single L1 Recruiter <span>1 L1, ₹15L WCP, till 15 Nov</span></button>
         <button class="scenario-btn" onclick="loadScenario('two_l1')">Two Active L1s <span>Full initiative payout</span></button>
         <button class="scenario-btn" onclick="loadScenario('power')">Power Recruiter <span>CEO Council + ARDM business criteria</span></button>
       </div>
@@ -651,8 +651,8 @@ select:focus, input:focus { color: var(--maroon); }
 
 <script>
 const SLABS = {
-  15: { thresholds:[125000,200000,250000,350000,500000,650000,800000], label:'Contest till 15th Sep' },
-  30: { thresholds:[150000,250000,350000,500000,750000,1000000,1200000], label:'Contest till 30th Sep' }
+  15: { thresholds:[125000,200000,250000,350000,500000,650000,800000], label:'Contest till 15th Nov' },
+  30: { thresholds:[150000,250000,350000,500000,750000,1000000,1200000], label:'Contest till 30th Nov' }
 };
 const CASH_REWARD = [10000,25000,35000,0,20000,0,25000];
 const TRIP_TYPE   = [null,null,null,'Cordelia','Cordelia','Bali','Bali'];
@@ -820,7 +820,7 @@ function calculate(){
     cashComponents+=beyondReward;
   }
 
-  // September initiative: existing active L1s and newly recruited L1s are counted together.
+  // November initiative: existing active L1s and newly recruited L1s are counted together.
   const qualifyingL1Count = l1Active + recruitedL1Count;
   const penalty = qualifyingL1Count < 2;
   let cashAfterPenalty = cashComponents;
@@ -1067,7 +1067,7 @@ function buildInsights(d){
   // Initiative
   const initBox=document.getElementById('ins_init'), initText=document.getElementById('ins_init_text');
   if(d.penalty){
-    initText.innerHTML=`Only <strong>${d.qualifyingL1Count} L1${d.qualifyingL1Count==1?' is':'s are'} counted as active</strong> in September (Existing Active + Recruited) - below the minimum of 2. This halved the cash payout${d.tripEarned?' and added a ₹10,000 trip co-pay':''}.`;
+    initText.innerHTML=`Only <strong>${d.qualifyingL1Count} L1${d.qualifyingL1Count==1?' is':'s are'} counted as active</strong> in November (Existing Active + Recruited) - below the minimum of 2. This halved the cash payout${d.tripEarned?' and added a ₹10,000 trip co-pay':''}.`;
     initBox.classList.remove('hidden'); initBox.classList.add('warn'); initBox.classList.remove('ok');
   } else { initBox.classList.add('hidden'); }
 
